@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿# Sistema de Alocação de Trajes (Frontend)
 
 Frontend moderno (React + Vite + Tailwind) para um sistema interno de locação de trajes.
@@ -20,3 +21,6 @@ Frontend moderno (React + Vite + Tailwind) para um sistema interno de locação 
 ## Observação
 
 Os dados são persistidos no localStorage (modo frontend). Futuro backend: Laravel + MySQL.
+=======
+# clara-alguel
+>>>>>>> d5955762222843efd0fec39bf92c2ddbfc99cbeb
