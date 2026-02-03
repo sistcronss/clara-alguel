@@ -1,0 +1,13 @@
+<?php
+// Copie este arquivo para _config.php e preencha a senha.
+// ATENÇÃO: não publique sua senha em repositório público.
+
+return [
+  'DB_HOST' => 'localhost',
+  'DB_NAME' => 'u266668298_claraalquel',
+  'DB_USER' => 'u266668298_claraalquel',
+  'DB_PASS' => 'COLE_SUA_SENHA_AQUI',
+
+  // Ajuste se você hospedar em subpasta; deixe vazio para auto.
+  'PUBLIC_BASE_URL' => '',
+];
