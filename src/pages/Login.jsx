@@ -4,8 +4,9 @@ export default function Login({ onLogin, empresa }) {
   const [login, setLogin] = useState("");
   const [senha, setSenha] = useState("");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setError("");
     if (!onLogin) return;
@@ -17,8 +18,14 @@ export default function Login({ onLogin, empresa }) {
       setError("Informe a senha.");
       return;
     }
-    const res = onLogin(login, senha);
-    if (res?.ok === false) setError(res.message || "Falha ao entrar.");
+
+    setSubmitting(true);
+    try {
+      const res = await onLogin(login, senha);
+      if (res?.ok === false) setError(res.message || "Falha ao entrar.");
+    } finally {
+      setSubmitting(false);
+    }
   }
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 to-indigo-300">
@@ -54,7 +61,15 @@ export default function Login({ onLogin, empresa }) {
           {error && (
             <div className="text-sm bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded">{error}</div>
           )}
-          <button className="bg-white text-indigo-800 px-4 py-2 rounded hover:bg-indigo-50 mt-2 font-semibold">Entrar</button>
+          <button
+            disabled={submitting}
+            className={
+              "bg-white text-indigo-800 px-4 py-2 rounded hover:bg-indigo-50 mt-2 font-semibold " +
+              (submitting ? "opacity-70 cursor-not-allowed" : "")
+            }
+          >
+            {submitting ? "Entrando..." : "Entrar"}
+          </button>
         </form>
         <div className="text-xs text-indigo-100/90">
           <div>Usuários de teste:</div>

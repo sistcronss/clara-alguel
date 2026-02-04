@@ -28,6 +28,12 @@ function AppShell() {
     return auth.user ?? { nome: "Modo teste", foto: null };
   }, [auth.user]);
 
+  const usuarioNomeCurto = useMemo(() => {
+    const nome = String(usuario?.nome || "").trim();
+    if (!nome) return "Usuário";
+    return nome.split(/\s+/)[0];
+  }, [usuario?.nome]);
+
   const isAdmin = auth.user?.perfil === "Administrador";
 
   useEffect(() => {
@@ -74,9 +80,9 @@ function AppShell() {
     return items;
   }, [isAdmin, testMode]);
 
-  function handleLogin(login, senha) {
-    const res = auth.login(login, senha);
-    if (res.ok) navigate("/", { replace: true });
+  async function handleLogin(login, senha) {
+    const res = await auth.login(login, senha);
+    if (res?.ok) navigate("/", { replace: true });
     return res;
   }
 
@@ -110,7 +116,7 @@ function AppShell() {
         }
       >
         <div className="flex items-center justify-center px-4 py-2 border-b border-indigo-800">
-          {empresa?.logo && <img src={empresa.logo} alt="Logo" className="h-40 w-40 object-contain" />}
+          {empresa?.logo && <img src={empresa.logo} alt="Logo" className="h-24 w-24 md:h-40 md:w-40 object-contain" />}
         </div>
 
         <nav className="flex-1 overflow-y-auto flex flex-col gap-1 mt-0 px-2">
@@ -150,8 +156,8 @@ function AppShell() {
       )}
 
       <div className="flex-1 min-w-0 flex flex-col min-h-screen">
-        <header className="bg-white shadow flex items-center justify-between px-4 md:px-6 py-3 sticky top-0 z-20 w-full">
-          <div className="flex items-center gap-2">
+        <header className="bg-white shadow flex items-center justify-between px-3 md:px-6 py-2 md:py-3 sticky top-0 z-20 w-full">
+          <div className="flex items-center gap-2 min-w-0">
             <button
               className="md:hidden mr-2 bg-indigo-600 text-white p-2 rounded shadow"
               aria-label="Abrir menu"
@@ -161,28 +167,31 @@ function AppShell() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-            <span className="font-bold text-lg text-indigo-700">Painel</span>
+            <span className="font-bold text-lg text-indigo-700 hidden sm:inline">Painel</span>
             {testMode && <span className="ml-2 px-2 py-1 bg-yellow-200 text-yellow-800 rounded text-xs font-semibold">MODO TESTE</span>}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-0">
             {(auth.isAuthenticated || testMode) && (
               <button
                 type="button"
-                className="px-3 py-2 rounded bg-indigo-600 text-white font-medium hover:bg-indigo-700"
+                className="inline-flex items-center gap-2 px-2.5 py-2 rounded bg-indigo-600 text-white font-medium hover:bg-indigo-700 text-sm sm:text-base whitespace-nowrap"
                 onClick={() => navigate("/contratos", { state: { startCreate: true } })}
               >
-                Iniciar pedido
+                <FaFileContract className="text-base sm:text-lg" />
+                <span className="sm:hidden">Pedido</span>
+                <span className="hidden sm:inline">Iniciar pedido</span>
               </button>
             )}
 
-            <button className="flex items-center gap-2 px-3 py-2 rounded hover:bg-indigo-50" onClick={openProfile}>
+            <button className="flex items-center gap-2 px-2.5 py-2 rounded hover:bg-indigo-50 min-w-0" onClick={openProfile}>
               {usuario.foto ? (
                 <img src={usuario.foto} alt="Avatar" className="h-8 w-8 rounded-full object-cover" />
               ) : (
                 <span className="bg-indigo-200 text-indigo-700 rounded-full h-8 w-8 flex items-center justify-center font-bold">{usuario.nome[0]}</span>
               )}
-              <span className="font-medium text-indigo-700">{usuario.nome}</span>
+              <span className="font-medium text-indigo-700 truncate max-w-[9rem] hidden sm:inline">{usuario.nome}</span>
+              <span className="font-medium text-indigo-700 truncate max-w-[7rem] sm:hidden">{usuarioNomeCurto}</span>
             </button>
           </div>
         </header>
@@ -234,7 +243,7 @@ function AppShell() {
           <div className="w-full max-w-none">
             <Routes>
               <Route path="/login" element={<Login empresa={empresa} onLogin={handleLogin} />} />
-              <Route element={<PrivateRoute isAuthenticated={auth.isAuthenticated} testMode={testMode} />}>
+              <Route element={<PrivateRoute isAuthenticated={auth.isAuthenticated} loading={auth.loading} testMode={testMode} />}>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/clientes" element={<Clientes />} />
                 <Route

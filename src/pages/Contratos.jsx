@@ -7,15 +7,15 @@ import { FiDownload, FiPrinter } from "react-icons/fi";
 import { useEmpresa } from "../hooks/useEmpresa";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { maskCep, maskCpf, maskMoneyBR, maskPhoneBR } from "../utils/masks";
+import { maskCep, maskCpfCnpj, maskMoneyBR, maskPhoneBR } from "../utils/masks";
 
 function onlyDigits(v) {
   return String(v ?? "").replace(/\D+/g, "");
 }
 
-function isValidCpfLike(v) {
+function isValidCpfCnpjLike(v) {
   const d = onlyDigits(v);
-  return d.length === 11;
+  return d.length === 11 || d.length === 14;
 }
 
 function isValidCepLike(v) {
@@ -184,7 +184,7 @@ function buildPrintableContratoHtml({ empresa, cliente, contrato, pecasSeleciona
     <div class="small block">Clara Aluguel, com sede em Montes Claros- MG, Rua Dois-A, nº 226, Vila Anália, CEP 39402874</div>
     <div class="small block">e <span class="line" style="min-width: 420px;">${clienteNome || ""}</span></div>
 
-    <div class="small block">Tel: <span class="line" style="min-width: 210px;">${clienteTel || ""}</span>, CPF <span class="line" style="min-width: 190px;">${clienteCpf || ""}</span>, residente no endereço:</div>
+    <div class="small block">Tel: <span class="line" style="min-width: 210px;">${clienteTel || ""}</span>, CPF/CNPJ <span class="line" style="min-width: 190px;">${clienteCpf || ""}</span>, residente no endereço:</div>
     <div class="small block"><span class="line" style="min-width: 540px;">${clienteEndereco || ""}</span></div>
 
     <div class="small block">Resolvem celebrar o presente contrato de locação com as cláusulas e condições seguintes:</div>
@@ -303,6 +303,8 @@ export default function Contratos() {
   const [pecaSearchOpen, setPecaSearchOpen] = useState(false);
   const [pecaSearch, setPecaSearch] = useState("");
 
+  const [clienteSearch, setClienteSearch] = useState("");
+
   const [clienteOpen, setClienteOpen] = useState(false);
   const [clienteForm, setClienteForm] = useState(CLIENTE_EMPTY);
 
@@ -316,6 +318,7 @@ export default function Contratos() {
     setEditingId(null);
     setForm({ ...EMPTY, codigo: nextContratoCodigo });
     setPecaSearch("");
+    setClienteSearch("");
     setOpen(true);
 
     navigate("/contratos", { replace: true, state: null });
@@ -326,6 +329,25 @@ export default function Contratos() {
     for (const c of clientes.items) m.set(c.id, c);
     return m;
   }, [clientes.items]);
+
+  const clientesFiltered = useMemo(() => {
+    const q = String(clienteSearch || "").trim().toLowerCase();
+    if (!q) return clientes.items;
+    const qDigits = onlyDigits(q);
+    return clientes.items.filter((c) => {
+      const nome = String(c?.nome || "").toLowerCase();
+      const cpf = String(c?.cpf || "").toLowerCase();
+      const tel = String(c?.telefone || "").toLowerCase();
+
+      if (nome.includes(q) || cpf.includes(q) || tel.includes(q)) return true;
+      if (qDigits) {
+        const cpfDigits = onlyDigits(c?.cpf);
+        const telDigits = onlyDigits(c?.telefone);
+        if (cpfDigits.includes(qDigits) || telDigits.includes(qDigits)) return true;
+      }
+      return false;
+    });
+  }, [clientes.items, clienteSearch]);
 
   const pecaById = useMemo(() => {
     const m = new Map();
@@ -515,6 +537,7 @@ export default function Contratos() {
     setEditingId(null);
     setForm({ ...EMPTY, codigo: nextContratoCodigo });
     setPecaSearch("");
+    setClienteSearch("");
     setOpen(true);
   }
 
@@ -526,7 +549,7 @@ export default function Contratos() {
   function handleClienteChange(e) {
     const { name, value } = e.target;
     let next = value;
-    if (name === "cpf") next = maskCpf(value);
+    if (name === "cpf") next = maskCpfCnpj(value);
     if (name === "telefone") next = maskPhoneBR(value);
     if (name === "cep") next = maskCep(value);
     setClienteForm((f) => ({ ...f, [name]: next }));
@@ -549,17 +572,17 @@ export default function Contratos() {
       return;
     }
     if (!payload.cpf) {
-      alert("Informe o CPF.");
+      alert("Informe o CPF/CNPJ.");
       return;
     }
-    if (!isValidCpfLike(payload.cpf)) {
-      alert("CPF inválido. Informe 11 dígitos.");
+    if (!isValidCpfCnpjLike(payload.cpf)) {
+      alert("CPF/CNPJ inválido. Informe 11 (CPF) ou 14 (CNPJ) dígitos.");
       return;
     }
     const cpfDigits = onlyDigits(payload.cpf);
     const cpfExists = clientes.items.some((c) => onlyDigits(c.cpf) === cpfDigits);
     if (cpfExists) {
-      alert("Já existe um cliente cadastrado com este CPF.");
+      alert("Já existe um cliente cadastrado com este CPF/CNPJ.");
       return;
     }
 
@@ -600,6 +623,7 @@ export default function Contratos() {
       observacoes: item.observacoes || "",
     });
     setPecaSearch("");
+    setClienteSearch("");
     setOpen(true);
   }
 
@@ -871,19 +895,44 @@ export default function Contratos() {
                 + Novo cliente
               </button>
             </div>
+
+            <div className="mt-2">
+              <input
+                value={clienteSearch}
+                onChange={(e) => setClienteSearch(e.target.value)}
+                className="border rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                placeholder="Pesquisar cliente por nome, CPF/CNPJ, telefone..."
+              />
+              <div className="text-xs text-gray-500 mt-1">
+                Mostrando {clientesFiltered.length} de {clientes.items.length} cliente(s)
+              </div>
+            </div>
+
             <select name="clienteId" value={form.clienteId} onChange={handleChange} required className="border rounded-lg px-3 py-2 w-full">
               <option value="">Selecione...</option>
-              {clientes.items.map((c) => (
-                <option key={c.id} value={c.id}>{c.nome}</option>
-              ))}
+              {(() => {
+                const selected = form.clienteId ? clienteById.get(form.clienteId) : null;
+                const selectedMissing = !!selected && !clientesFiltered.some((c) => c.id === selected.id);
+                return (
+                  <>
+                    {selectedMissing && <option value={selected.id}>{selected.nome} (selecionado)</option>}
+                    {clientesFiltered.map((c) => (
+                      <option key={c.id} value={c.id}>{c.nome}</option>
+                    ))}
+                  </>
+                );
+              })()}
             </select>
             {clientes.items.length === 0 && <p className="text-xs text-gray-500 mt-1">Cadastre clientes primeiro em Clientes.</p>}
+            {clientes.items.length > 0 && clientesFiltered.length === 0 && (
+              <p className="text-xs text-gray-500 mt-1">Nenhum cliente encontrado para essa pesquisa.</p>
+            )}
             {form.clienteId && (() => {
               const cli = clienteById.get(form.clienteId);
               if (!cli) return null;
               return (
                 <div className="mt-2 text-sm text-gray-600">
-                  <div><span className="font-medium text-gray-700">CPF:</span> {cli.cpf || "-"} • <span className="font-medium text-gray-700">Tel:</span> {cli.telefone || "-"}</div>
+                  <div><span className="font-medium text-gray-700">CPF/CNPJ:</span> {cli.cpf || "-"} • <span className="font-medium text-gray-700">Tel:</span> {cli.telefone || "-"}</div>
                   <div className="truncate"><span className="font-medium text-gray-700">Endereço:</span> {cli.endereco || "-"}</div>
                 </div>
               );
@@ -1024,7 +1073,16 @@ export default function Contratos() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">CPF</label>
-            <input name="cpf" value={clienteForm.cpf} onChange={handleClienteChange} required className="border rounded-lg px-3 py-2 w-full" placeholder="000.000.000-00" />
+            <input
+              name="cpf"
+              value={clienteForm.cpf}
+              onChange={handleClienteChange}
+              required
+              inputMode="numeric"
+              pattern="[0-9.\-\/ ]{11,25}"
+              className="border rounded-lg px-3 py-2 w-full"
+              placeholder="000.000.000-00 ou 00.000.000/0000-00"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Nascimento</label>

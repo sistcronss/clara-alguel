@@ -32,6 +32,13 @@ export function maskCnpj(value) {
   return out;
 }
 
+export function maskCpfCnpj(value) {
+  const d = onlyDigits(value);
+  // Se o usuário já passou de 11 dígitos, tratamos como CNPJ.
+  if (d.length > 11) return maskCnpj(d);
+  return maskCpf(d);
+}
+
 export function maskCep(value) {
   const d = onlyDigits(value).slice(0, 8);
   if (!d) return "";

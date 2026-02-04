@@ -6,9 +6,16 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   json_response(['ok' => false, 'error' => 'Método inválido'], 405);
 }
 
+$me = require_login();
+
 $userId = isset($_POST['userId']) ? trim((string)$_POST['userId']) : '';
 if ($userId === '') {
   json_response(['ok' => false, 'error' => 'userId é obrigatório'], 400);
+}
+
+$isAdmin = ((string)($me['perfil'] ?? '') === 'Administrador');
+if (!$isAdmin && (string)($me['id'] ?? '') !== $userId) {
+  json_response(['ok' => false, 'error' => 'Acesso restrito'], 403);
 }
 
 if (!isset($_FILES['file'])) {

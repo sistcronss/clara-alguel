@@ -2,15 +2,15 @@ import { useMemo, useState } from "react";
 import Modal from "../components/Modal";
 import { useCrudStorage } from "../hooks/useCrudStorage";
 import { useAuth } from "../hooks/useAuth";
-import { maskCep, maskCpf, maskPhoneBR } from "../utils/masks";
+import { maskCep, maskCpfCnpj, maskPhoneBR } from "../utils/masks";
 
 function onlyDigits(v) {
   return String(v ?? "").replace(/\D+/g, "");
 }
 
-function isValidCpfLike(v) {
+function isValidCpfCnpjLike(v) {
   const d = onlyDigits(v);
-  return d.length === 11;
+  return d.length === 11 || d.length === 14;
 }
 
 function isValidCepLike(v) {
@@ -94,7 +94,7 @@ export default function Clientes() {
   function handleChange(e) {
     const { name, value } = e.target;
     let next = value;
-    if (name === "cpf") next = maskCpf(value);
+    if (name === "cpf") next = maskCpfCnpj(value);
     if (name === "telefone") next = maskPhoneBR(value);
     if (name === "cep") next = maskCep(value);
     setForm((f) => ({ ...f, [name]: next }));
@@ -117,11 +117,11 @@ export default function Clientes() {
       return;
     }
     if (!payload.cpf) {
-      alert("Informe o CPF.");
+      alert("Informe o CPF/CNPJ.");
       return;
     }
-    if (!isValidCpfLike(payload.cpf)) {
-      alert("CPF inválido. Informe 11 dígitos.");
+    if (!isValidCpfCnpjLike(payload.cpf)) {
+      alert("CPF/CNPJ inválido. Informe 11 (CPF) ou 14 (CNPJ) dígitos.");
       return;
     }
     const cpfDigits = onlyDigits(payload.cpf);
@@ -130,7 +130,7 @@ export default function Clientes() {
       return onlyDigits(c.cpf) === cpfDigits;
     });
     if (cpfExists) {
-      alert("Já existe um cliente cadastrado com este CPF.");
+      alert("Já existe um cliente cadastrado com este CPF/CNPJ.");
       return;
     }
 
@@ -173,22 +173,22 @@ export default function Clientes() {
           <h1 className="text-2xl font-bold text-indigo-700">Clientes</h1>
           <p className="text-gray-500 text-sm">Cadastro e histórico do cliente</p>
         </div>
-        <button onClick={startCreate} className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 w-full md:w-auto">
-          + Novo Cliente
-        </button>
-      </div>
-
-      <div className="bg-white rounded-2xl shadow p-4">
-        <div className="flex flex-col md:flex-row md:items-center gap-3 mb-4">
+        <div className="w-full md:w-auto flex flex-col md:flex-row gap-3 md:items-center">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             type="text"
-            placeholder="Buscar por nome, CPF, telefone..."
-            className="border rounded-lg px-3 py-2 w-full md:w-80 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+            placeholder="Buscar clientes por nome, CPF/CNPJ, telefone..."
+            className="border rounded-lg px-3 py-2 w-full md:w-96 focus:outline-none focus:ring-2 focus:ring-indigo-200"
           />
-          <div className="text-sm text-gray-500">{filtered.length} registro(s)</div>
+          <button onClick={startCreate} className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 w-full md:w-auto">
+            + Novo Cliente
+          </button>
         </div>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow p-4">
+        <div className="text-sm text-gray-500 mb-4">{filtered.length} registro(s)</div>
 
         {/* Desktop table */}
         <div className="hidden md:block overflow-x-auto">
@@ -196,7 +196,7 @@ export default function Clientes() {
             <thead>
               <tr className="bg-indigo-50">
                 <th className="px-3 py-2 text-left font-semibold">Nome</th>
-                <th className="px-3 py-2 text-left font-semibold">CPF</th>
+                <th className="px-3 py-2 text-left font-semibold">CPF/CNPJ</th>
                 <th className="px-3 py-2 text-left font-semibold">Nascimento</th>
                 <th className="px-3 py-2 text-left font-semibold">Telefone</th>
                 <th className="px-3 py-2 text-left font-semibold">CEP</th>
@@ -237,7 +237,7 @@ export default function Clientes() {
           {filtered.map((c) => (
             <div key={c.id} className="border rounded-xl p-3">
               <div className="font-semibold text-gray-800">{c.nome}</div>
-              <div className="text-sm text-gray-600">CPF: {c.cpf}</div>
+              <div className="text-sm text-gray-600">CPF/CNPJ: {c.cpf}</div>
               <div className="text-sm text-gray-600">Tel: {c.telefone}</div>
               <div className="text-sm text-gray-600">CEP: {c.cep}</div>
               <div className="flex gap-4 mt-2">
@@ -271,17 +271,16 @@ export default function Clientes() {
             <input name="nome" value={form.nome} onChange={handleChange} required className="border rounded-lg px-3 py-2 w-full" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">CPF</label>
+            <label className="block text-sm font-medium text-gray-700">CPF/CNPJ</label>
             <input
               name="cpf"
               value={form.cpf}
               onChange={handleChange}
               required
               inputMode="numeric"
-              pattern="[0-9.\- ]{11,20}"
-              minLength={11}
+              pattern="[0-9.\-\/ ]{11,25}"
               className="border rounded-lg px-3 py-2 w-full"
-              placeholder="000.000.000-00"
+              placeholder="000.000.000-00 ou 00.000.000/0000-00"
             />
           </div>
           <div>
