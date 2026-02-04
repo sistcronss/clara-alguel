@@ -355,8 +355,8 @@ export default function Relatorios() {
           <div className="lg:col-span-2">
             <label className="block text-sm font-medium text-gray-700">Período</label>
             <div className="flex flex-col sm:flex-row gap-2">
-              <input value={start} onChange={(e) => setStart(e.target.value)} type="date" className="border rounded-lg px-3 py-2 w-full" />
-              <input value={end} onChange={(e) => setEnd(e.target.value)} type="date" className="border rounded-lg px-3 py-2 w-full" />
+              <input value={start} onChange={(e) => setStart(e.target.value)} type="date" className="border rounded-lg px-3 py-2 w-full sm:w-44" />
+              <input value={end} onChange={(e) => setEnd(e.target.value)} type="date" className="border rounded-lg px-3 py-2 w-full sm:w-44" />
             </div>
           </div>
         </div>

@@ -9,7 +9,7 @@
 -- Preencha (confirme no hPanel):
 --   DATABASE_NAME = u266668298_claraalquel
 --   DB_USERNAME   = u266668298_claraalquel
---   DB_PASSWORD   = COLE_A_SENHA_AQUI
+--   DB_PASSWORD   = 3832151955Sist
 --
 -- Dica: execute no phpMyAdmin como o usuário principal (se houver).
 

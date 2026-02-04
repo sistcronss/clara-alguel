@@ -234,9 +234,9 @@ function AppShell() {
                 <button
                   type="button"
                   className="px-5 py-2.5 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700"
-                  onClick={() => setShowProfile(false)}
+                  onClick={doLogout}
                 >
-                  Sair do perfil
+                  Sair
                 </button>
               </div>
           </div>

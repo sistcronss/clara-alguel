@@ -283,7 +283,7 @@ export default function Clientes() {
               placeholder="000.000.000-00 ou 00.000.000/0000-00"
             />
           </div>
-          <div>
+          <div className="md:max-w-[240px]">
             <label className="block text-sm font-medium text-gray-700">Data de nascimento</label>
             <input name="nascimento" value={form.nascimento} onChange={handleChange} type="date" className="border rounded-lg px-3 py-2 w-full" />
           </div>
