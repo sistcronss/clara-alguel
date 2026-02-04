@@ -184,7 +184,10 @@ function AppShell() {
               </button>
             )}
 
-            <button className="flex items-center gap-2 px-2.5 py-2 rounded hover:bg-indigo-50 min-w-0" onClick={openProfile}>
+            <button
+              className="flex items-center gap-2 px-2.5 py-2 rounded bg-white border border-gray-200 shadow-sm hover:bg-gray-50 min-w-0"
+              onClick={openProfile}
+            >
               {usuario.foto ? (
                 <img src={usuario.foto} alt="Avatar" className="h-8 w-8 rounded-full object-cover" />
               ) : (
