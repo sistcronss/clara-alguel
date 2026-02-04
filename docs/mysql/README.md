@@ -29,10 +29,9 @@ Arquivos:
 - Execute apenas o `02-schema.sql`
 
 ## 4) Observação importante (sobre seu projeto)
-Seu sistema hoje roda como **frontend** e salva dados no **localStorage**.
-O MySQL vai ser usado quando você criar um **backend/API** (Node/PHP) para:
-- autenticar usuário no servidor
-- salvar/ler clientes, peças, contratos
-- salvar fotos no servidor (URL) em vez de no navegador
+O projeto já tem uma **API em PHP** em `public/api/` e o frontend pode rodar em **modo API** (`VITE_USE_API=1`).
 
-Se você quiser, eu posso montar a API (Node/Express) para conectar nesse MySQL e trocar o localStorage por banco.
+Então, para funcionar em produção com persistência real na Hostinger, você precisa:
+- criar o banco MySQL
+- importar o `02-schema.sql`
+- configurar `public/api/_config.php`
