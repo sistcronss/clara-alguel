@@ -237,7 +237,7 @@ export default function Agenda() {
           <div className="flex flex-col gap-4">
             <div className="bg-indigo-50 rounded-xl p-3">
               <div className="font-semibold text-gray-800">{selectedGroup.cliente?.nome}</div>
-              <div className="text-sm text-gray-700">CPF: {selectedGroup.cliente?.cpf || "-"}</div>
+              <div className="text-sm text-gray-700">CPF/CNPJ: {selectedGroup.cliente?.cpf || "-"}</div>
               <div className="text-sm text-gray-700">Telefone: {selectedGroup.cliente?.telefone || "-"}</div>
             </div>
 

@@ -225,7 +225,7 @@ function buildPrintableContratoHtml({ empresa, cliente, contrato, pecasSeleciona
     <div class="small block">O valor referente à reserva não será devolvido sob qualquer hipótese, mesmo em caso de</div>
     <div class="small block">cancelamento do contrato, também não poderá ser transferido ao outro traje.</div>
 
-    <div class="small block">Todos os trajes precisam passar por última prova, para verificação dos ajustes. L</div>
+    <div class="small block">Todos os trajes precisam passar por última prova, para verificação dos ajustes.</div>
 
     <div class="small block">Caso os trajes e/ou acessórios sejam devolvidos com excesso de sujeira, manchas ou danificados,</div>
     <div class="small block">será cobrada uma taxa (o valor a pagar será negociado e avaliado as peças danificadas).</div>
@@ -1072,7 +1072,7 @@ export default function Contratos() {
             <input name="nome" value={clienteForm.nome} onChange={handleClienteChange} required className="border rounded-lg px-3 py-2 w-full" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">CPF</label>
+            <label className="block text-sm font-medium text-gray-700">CPF/CNPJ</label>
             <input
               name="cpf"
               value={clienteForm.cpf}
