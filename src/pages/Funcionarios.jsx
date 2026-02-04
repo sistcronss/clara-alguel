@@ -117,7 +117,8 @@ export default function Funcionarios() {
       cargo: item.cargo || "",
       perfil: item.perfil || "Funcionario",
       login: item.login || "",
-      senha: item.senha || "",
+      // Em modo API a senha não volta no list; e em ambos os modos não mostramos senha existente.
+      senha: "",
       foto: item.foto || null,
     });
     setOpen(true);
@@ -150,11 +151,13 @@ export default function Funcionarios() {
       alert("Informe o login.");
       return;
     }
-    if (!payload.senha) {
+    const isCreating = !editingId;
+    if (isCreating && !payload.senha) {
       alert("Informe a senha.");
       return;
     }
-    if (payload.senha.length < 6) {
+    // Ao editar, senha é opcional (só troca se preencher)
+    if (payload.senha && payload.senha.length < 6) {
       alert("A senha deve ter pelo menos 6 caracteres.");
       return;
     }
@@ -186,8 +189,11 @@ export default function Funcionarios() {
       }
     }
 
-    if (editingId) crud.update(editingId, payload);
-    else crud.create(payload);
+    // Não enviar senha vazia em update (no API isso significaria "não trocar")
+    const finalPayload = !isCreating && !payload.senha ? { ...payload, senha: "" } : payload;
+
+    if (editingId) crud.update(editingId, finalPayload);
+    else crud.create(finalPayload);
     setOpen(false);
   }
 
@@ -212,6 +218,18 @@ export default function Funcionarios() {
 
   return (
     <div className="flex flex-col gap-4">
+      {crud.mode === "local" && (
+        <div className="bg-yellow-50 border border-yellow-200 text-yellow-900 rounded-xl p-3 text-sm">
+          Você está em <span className="font-semibold">modo local</span> (salva no navegador/localStorage). Para registrar no MySQL do Hostinger,
+          gere o build com <span className="font-semibold">VITE_USE_API=1</span> e configure <span className="font-semibold">public/api/_config.php</span>.
+        </div>
+      )}
+      {crud.mode === "api" && crud.lastError && (
+        <div className="bg-red-50 border border-red-200 text-red-900 rounded-xl p-3 text-sm">
+          Erro ao acessar o banco/API: <span className="font-semibold">{crud.lastError}</span>
+        </div>
+      )}
+
       <div className="flex items-start md:items-center justify-between gap-3 flex-col md:flex-row">
         <div>
           <h1 className="text-2xl font-bold text-indigo-700">Funcionários / Usuários</h1>

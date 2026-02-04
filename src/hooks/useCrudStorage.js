@@ -41,6 +41,7 @@ async function apiRequest(path, { method = "GET", body, isFormData = false } = {
 }
 
 export function useCrudStorage(storageKey, { initialItems = [] } = {}) {
+  const mode = USE_API ? "api" : "local";
   const [items, setItems] = useState(() => {
     if (USE_API) return [];
     const raw = localStorage.getItem(storageKey);
@@ -48,6 +49,8 @@ export function useCrudStorage(storageKey, { initialItems = [] } = {}) {
     const parsed = safeParse(raw, initialItems);
     return Array.isArray(parsed) ? parsed : initialItems;
   });
+
+  const [lastError, setLastError] = useState(null);
 
   const serialized = useMemo(() => JSON.stringify(items), [items]);
   const serializedRef = useRef(serialized);
@@ -105,11 +108,15 @@ export function useCrudStorage(storageKey, { initialItems = [] } = {}) {
       try {
         const data = await apiRequest(`/${storageKey}/list.php`, { method: "GET" });
         const next = Array.isArray(data?.items) ? data.items : [];
-        if (alive) setItems(next);
+        if (alive) {
+          setItems(next);
+          setLastError(null);
+        }
       } catch (e) {
         // Em API mode, a tela de login pode ainda não estar autenticada.
         // Evita quebrar o app; a página de Login fará o fluxo.
         if (String(e?.message || "").toLowerCase().includes("não autenticado")) return;
+        if (alive) setLastError(e?.message || "Erro ao carregar dados");
         console.error(e);
       }
     })();
@@ -120,6 +127,8 @@ export function useCrudStorage(storageKey, { initialItems = [] } = {}) {
 
   const api = useMemo(() => {
     return {
+      mode,
+      lastError,
       items,
       setItems,
       create(data) {
@@ -134,7 +143,9 @@ export function useCrudStorage(storageKey, { initialItems = [] } = {}) {
             const res = await apiRequest(`/${storageKey}/create.php`, { method: "POST", body: item });
             const created = res?.item || item;
             setItems((prev) => [created, ...prev.filter((p) => p.id !== created.id)]);
+            setLastError(null);
           } catch (e) {
+            setLastError(e?.message || "Erro ao criar");
             alert(e?.message || "Erro ao criar");
           }
         })();
@@ -153,12 +164,15 @@ export function useCrudStorage(storageKey, { initialItems = [] } = {}) {
             const res = await apiRequest(`/${storageKey}/update.php`, { method: "POST", body: payload });
             const updated = res?.item || payload;
             setItems((prev) => prev.map((i) => (i.id === id ? updated : i)));
+            setLastError(null);
           } catch (e) {
+            setLastError(e?.message || "Erro ao atualizar");
             alert(e?.message || "Erro ao atualizar");
             // Recarrega do servidor para desfazer otimismo
             try {
               const data = await apiRequest(`/${storageKey}/list.php`, { method: "GET" });
               setItems(Array.isArray(data?.items) ? data.items : []);
+              setLastError(null);
             } catch {
               // ignore: manter estado atual se falhar ao recarregar
             }
@@ -175,7 +189,9 @@ export function useCrudStorage(storageKey, { initialItems = [] } = {}) {
         (async () => {
           try {
             await apiRequest(`/${storageKey}/delete.php`, { method: "POST", body: { id } });
+            setLastError(null);
           } catch (e) {
+            setLastError(e?.message || "Erro ao excluir");
             alert(e?.message || "Erro ao excluir");
             setItems(prevItems);
           }
@@ -185,7 +201,7 @@ export function useCrudStorage(storageKey, { initialItems = [] } = {}) {
         return items.find((i) => i.id === id) ?? null;
       },
     };
-  }, [items, storageKey]);
+  }, [items, storageKey, mode, lastError]);
 
   return api;
 }
