@@ -185,7 +185,7 @@ function AppShell() {
             )}
 
             <button
-              className="flex items-center gap-2 px-2.5 py-2 rounded bg-white border border-indigo-200 shadow-sm hover:bg-indigo-50 min-w-0"
+              className="flex items-center gap-2 px-2.5 py-2 rounded bg-white border-2 border-indigo-400 shadow hover:bg-indigo-50 min-w-0"
               onClick={openProfile}
             >
               {usuario.foto ? (
